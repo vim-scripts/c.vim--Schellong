@@ -20,7 +20,6 @@ syn match	cFunction	"\<[a-zA-Z_][a-zA-Z_0-9]*\>[^()]*)("me=e-2
 "syn match	cFunction	"\<[a-zA-Z_][a-zA-Z_0-9]*\>\s*)("me=e-2
 syn match	cFunction	"\<[a-zA-Z_][a-zA-Z_0-9]*\>\s*("me=e-1
 syn match	cBraces		"[{}]"
-syn match	cUserLabel	"\<goto\s\+\I\i*"
 
 syn keyword cMC			__DI __EI __asm __set_il
 syn keyword cMC			__wait_nop __mul __div __mod __mulu __divu __modu
@@ -93,7 +92,7 @@ syn keyword cAnsiFunction	setbuf freopen fopen
 syn keyword cAnsiFunction	fflush fclose tmpnam
 syn keyword cAnsiFunction	tmpfile rename remove
 syn keyword cAnsiFunction	offsetof va_start va_end
-syn keyword cAnsiFunction	va_copy va_arg raise
+syn keyword cAnsiFunction	va_copy va_arg raise signal
 syn keyword cAnsiFunction	longjmp setjmp isunordered
 syn keyword cAnsiFunction	islessgreater islessequal isless
 syn keyword cAnsiFunction	isgreaterequal isgreater fmal
@@ -262,9 +261,10 @@ syn keyword	cAnsiName	and_eq compl or xor_eq
 syn keyword	cAnsiName	bitand not or_eq
 
 " A bunch of useful C keywords
-syn keyword	cStatement	contained goto
+"syn keyword	cStatement	goto
 syn keyword	cStatement	break return continue asm
-syn keyword	cLabel		case default
+syn keyword	cLabel		default
+syn keyword	cLabel		case
 syn keyword	cConditional	if else switch
 syn keyword	cRepeat		while for do
 
@@ -319,7 +319,7 @@ endif
 
 "catch errors caused by wrong parenthesis and brackets
 " also accept <% for {, %> for }, <: for [ and :> for ] (C99)
-syn cluster	cParenGroup	contains=cParenError,cIncluded,cSpecial,cCommentSkip,cCommentString,cComment2String,@cCommentGroup,cCommentStartError,cUserCont,cUserLabel,cBitField,cCommentSkip,cOctalZero,cCppOut,cCppOut2,cCppSkip,cFormat,cNumber,cFloat,cOctal,cOctalError,cNumbersCom
+syn cluster	cParenGroup	contains=cParenError,cIncluded,cSpecial,cCommentSkip,cCommentString,cComment2String,@cCommentGroup,cCommentStartError,cUserCont,cUserLabel,cUserLabel2,cGotoLabel,cBitField,cCommentSkip,cOctalZero,cCppOut,cCppOut2,cCppSkip,cFormat,cNumber,cFloat,cOctal,cOctalError,cNumbersCom
 if exists("c_no_bracket_error")
   syn region	cParen		transparent start='(' end=')' contains=ALLBUT,@cParenGroup,cCppParen,cCppString,@Spell
   " cCppParen: same as cParen but ends at end-of-line; used in cDefine
@@ -468,7 +468,8 @@ if !exists("c_no_ansi") || exists("c_ansi_constants") || exists("c_gnu")
   syn keyword cConstant HUGE_VAL CLOCKS_PER_SEC NULL _NO_LEAP_SECONDS _LOCALTIME
   syn keyword cConstant LC_ALL LC_COLLATE LC_CTYPE LC_MONETARY
   syn keyword cConstant LC_NUMERIC LC_TIME
-  syn keyword cConstant SIG_DFL SIG_ERR SIG_IGN
+" syn keyword cConstant SIG_DFL SIG_ERR SIG_IGN
+  syn keyword cAnsiFuncPtr SIG_DFL SIG_ERR SIG_IGN
   syn keyword cConstant SIGABRT SIGFPE SIGILL SIGHUP SIGINT SIGSEGV SIGTERM
   syn keyword cConstant INFINITY     FP_SUBNORMAL FP_ILOGB0
   syn keyword cConstant NAN          FP_ZERO      FP_ILOGBNAN
@@ -522,13 +523,13 @@ syn region	cIncluded	display contained start=+"+ skip=+\\\\\|\\"+ end=+"+
 syn match	cIncluded	display contained "<[^>]*>"
 syn match	cInclude	display "^\s*\(%:\|#\)\s*include\>\s*["<]" contains=cIncluded
 syn match cLineSkip	"\\$"
-syn cluster	cPreProcGroup	contains=cPreConditIf,cPreCondit,cIncluded,cInclude,cDefined,cDefine,cErrInParen,cErrInBracket,cUserLabel,cSpecial,cOctalZero,cCppOut,cCppOut2,cCppSkip,cFormat,cNumber,cFloat,cOctal,cOctalError,cNumbersCom,cString,cCommentSkip,cCommentString,cComment2String,@cCommentGroup,cCommentStartError,cParen,cBracket,cMulti
+syn cluster	cPreProcGroup	contains=cPreConditIf,cPreCondit,cIncluded,cInclude,cDefined,cDefine,cErrInParen,cErrInBracket,cUserLabel,cUserLabel2,cGotoLabel,cSpecial,cOctalZero,cCppOut,cCppOut2,cCppSkip,cFormat,cNumber,cFloat,cOctal,cOctalError,cNumbersCom,cString,cCommentSkip,cCommentString,cComment2String,@cCommentGroup,cCommentStartError,cParen,cBracket,cMulti
 "syn region	cDefine		start="^\s*\(%:\|#\)\s*\(define\|undef\)\>" skip="\\$" end="$" end="//"me=s-1 contains=ALLBUT,@cPreProcGroup,@Spell
 syn region	cDefine		start="^\s*\(%:\|#\)\s*\(define\|undef\)\>" skip="\\$" end="$" end="//"me=s-1 contains=ALLBUT,@cPreProcGroup,cName,cFunction,cAnsiFunction,@Spell
 syn region	cPreProc	start="^\s*\(%:\|#\)\s*\(pragma\>\|line\>\|warning\>\|warn\>\|error\>\)" skip="\\$" end="$" keepend contains=ALLBUT,@cPreProcGroup,@Spell
 
 " Highlight User Labels
-syn cluster	cMultiGroup	contains=cIncluded,cSpecial,cCommentSkip,cCommentString,cComment2String,@cCommentGroup,cCommentStartError,cUserCont,cUserLabel,cBitField,cOctalZero,cCppOut,cCppOut2,cCppSkip,cFormat,cNumber,cFloat,cOctal,cOctalError,cNumbersCom,cCppParen,cCppBracket,cCppString
+syn cluster	cMultiGroup	contains=cIncluded,cSpecial,cCommentSkip,cCommentString,cComment2String,@cCommentGroup,cCommentStartError,cUserCont,cUserLabel,cUserLabel2,cGotoLabel,cBitField,cOctalZero,cCppOut,cCppOut2,cCppSkip,cFormat,cNumber,cFloat,cOctal,cOctalError,cNumbersCom,cCppParen,cCppBracket,cCppString
 syn region	cMulti		transparent start='?' skip='::' end=':' contains=ALLBUT,@cMultiGroup,@Spell
 " Avoid matching foo::bar() in C++ by requiring that the next char is not ':'
 syn cluster	cLabelGroup	contains=cUserLabel
@@ -538,6 +539,9 @@ syn match	cUserCont	display "^\s*\I\i*\s*:[^:]"me=e-1 contains=@cLabelGroup
 syn match	cUserCont	display ";\s*\I\i*\s*:[^:]"me=e-1 contains=@cLabelGroup
 
 syn match	cUserLabel	display "\I\i*" contained
+syn match	cUserLabel2	display "\I\i*:;\+"me=e-2
+syn match	cGotoLabel	display "\<goto\s\+\I\i*;"me=e-1,hs=s+5 contains=cGoto
+syn keyword	cGoto		contained goto
 
 " Avoid recognizing most bitfields as labels
 syn match	cBitField	display "^\s*\I\i*\s*:\s*[1-9]"me=e-1
@@ -585,7 +589,11 @@ if version >= 508 || !exists("did_c_syn_inits")
   HiLink cCommentL	cComment
   HiLink cCommentStart	cComment
   HiLink cLabel		Label
-  HiLink cUserLabel	Label
+" HiLink cUserLabel	Label
+  HiLink cUserLabel	UserLabel2
+  HiLink cUserLabel2	UserLabel2
+  HiLink cGotoLabel	UserLabel2
+  HiLink cGoto		Statement
   HiLink cConditional	Conditional
   HiLink cRepeat	Repeat
   HiLink cCharacter	Character
@@ -638,11 +646,13 @@ if version >= 508 || !exists("did_c_syn_inits")
   HiLink cBraces	BlockBraces
   "HiLink cBraceError	Error
   HiLink cMC		MicroController
+  HiLink cAnsiFuncPtr	AnsiFuncPtr
 
   hi Function		gui=NONE guifg=#e86f00
   "hi StdFunction	gui=bold guifg=#ee0040
   hi StdFunction	gui=bold guifg=#e86f00
   hi Statement		gui=bold guifg=#a06129
+  hi UserLabel2		gui=bold guifg=#c96129
   hi Operator		gui=NONE guifg=#000000
   hi OperatorBold	gui=bold guifg=#000000
   hi StdName		gui=bold guifg=#5276e6
@@ -651,6 +661,7 @@ if version >= 508 || !exists("did_c_syn_inits")
   hi Special		gui=NONE guifg=#a000a0
   hi Comment		gui=NONE guifg=grey62
   hi MicroController	gui=bold guifg=#d00000
+  hi AnsiFuncPtr	gui=NONE guifg=#ff0000
 " hi PreProc        	gui=NONE guifg=#6a5acd
   hi PreCondit      	gui=NONE guifg=#6a5acd
 " hi Macro          	gui=NONE guifg=#0000ff
